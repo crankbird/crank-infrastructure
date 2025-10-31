@@ -61,22 +61,16 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 
-# Node.js (for Graphite CLI)
+# Node.js (for development tools)
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-# Graphite CLI
-npm install -g @withgraphite/graphite-cli@latest
-
-# Python + uv
+# Python + uv (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ### 3. Authenticate Tools
 ```bash
-# Graphite (use your token)
-gt auth --token c7l1GB3uOrGp9USp1Y42iG4snP26C9HKS868xBRdJn5GLiX2pbZ0hiiCDB6m
-
 # Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 az login
@@ -474,19 +468,6 @@ sudo usermod -aG docker $USER
 newgrp docker  # Or logout/login
 ```
 
-### Graphite Authentication
-```bash
-# If authentication fails, re-authenticate
-gt auth --token c7l1GB3uOrGp9USp1Y42iG4snP26C9HKS868xBRdJn5GLiX2pbZ0hiiCDB6m
-```
-
-### Service Discovery Issues
-```bash
-# Check container networking
-docker network ls
-docker network inspect crank-platform_default
-```
-
 ### Azure Container Apps Issues
 ```bash
 # Check logs
@@ -500,14 +481,16 @@ az containerapp revision list --name crank-gateway --resource-group crank-platfo
 
 ### Creating New Features
 ```bash
-# Create new branch with Graphite
-gt create feature-name
+# Create new branch
+git checkout -b feature-name
 
 # Make changes, then submit PR
-gt submit
+git add .
+git commit -m "Add feature description"
+git push origin feature-name
 
-# Merge and sync
-gt repo sync
+# Create PR via GitHub web interface or CLI
+gh pr create --title "Feature: Description" --body "Details about the changes"
 ```
 
 ### Adding New Mesh Services
@@ -531,7 +514,6 @@ gt repo sync
 - **Service Documentation**: `/services/README.md`
 - **Enhancement Roadmap**: `/ENHANCEMENT_ROADMAP.md`
 - **Azure Strategy**: `/azure/deployment-strategy.md`
-- **Graphite Docs**: https://docs.graphite.dev/
 - **Azure Container Apps**: https://docs.microsoft.com/en-us/azure/container-apps/
 
 ---

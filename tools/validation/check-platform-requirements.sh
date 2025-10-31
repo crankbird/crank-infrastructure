@@ -107,8 +107,8 @@ if check_command "az" "Azure CLI" "curl -sL https://aka.ms/InstallAzureCLIDeb | 
     check_version "az" "Azure CLI" "2.0.0" "$AZ_VERSION"
 fi
 
-# Graphite CLI (optional)
-check_command "gt" "Graphite CLI" "npm install -g @withgraphite/graphite-cli@latest"
+# Optional development tools can be added here as needed
+echo "📋 Optional tools check complete"
 
 echo ""
 echo "📊 Environment Assessment:"

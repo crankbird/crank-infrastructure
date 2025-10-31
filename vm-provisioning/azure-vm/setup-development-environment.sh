@@ -61,9 +61,9 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githu
 sudo apt update
 sudo apt install gh -y
 
-# Install Graphite CLI
-echo "📊 Installing Graphite CLI..."
-npm install -g @withgraphite/graphite-cli@latest
+# Install development tools
+echo "�️ Installing development tools..."
+npm install -g npm@latest
 
 # Set up development directories
 echo "📁 Creating development directories..."
