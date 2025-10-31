@@ -2,7 +2,22 @@
 
 > Infrastructure as a Service layer for the Crank ecosystem. Handles environment provisioning, container orchestration, and development environment setup.
 
-## 🏗️ Architecture Role
+## � **Meet Our Architectural Menagerie**
+
+Our codebase includes references to architectural mascots who guide our design decisions:
+
+| Mascot | Role | Files/Patterns | Mission |
+|--------|------|----------------|---------|
+| 🐰 **Wendy** | Zero-Trust Security Bunny | `*security*`, `*mTLS*`, `*auth*` | Ensures all communications are encrypted and services are properly isolated |
+| 🦙 **Kevin** | Portability Llama | `*runtime*`, `*portable*`, `*kevin*` | Provides container runtime abstraction (Docker/Podman/Containerd) |
+| 🐩 **Bella** | Modularity Poodle | `*separation*`, `*modular*`, `*plugin*` | Ensures clean service boundaries and separation readiness |
+| 🦅 **Oliver** | Anti-Pattern Eagle | `*pattern*`, `*review*`, `*quality*` | Prevents architectural anti-patterns and maintains code quality |
+
+*When you see mascot names in filenames or code, they indicate the architectural principle being applied!*
+
+---
+
+## �🏗️ Architecture Role
 
 **IaaS Layer** in the three-tier Crank architecture:
 - **IaaS** (this repo): Infrastructure provisioning and environment setup
