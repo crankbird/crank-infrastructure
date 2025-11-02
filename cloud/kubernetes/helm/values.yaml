@@ -1,0 +1,246 @@
+# Default values for crank-platform
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  imageRegistry: crankplatformregistry.azurecr.io
+  imagePullSecrets: []
+  
+# Deployment target configuration
+deployment:
+  target: auto  # auto, kubernetes, azure-container-apps
+  
+# Platform service configuration
+platform:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: crank-platform
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - host: crank-platform.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+      
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+# Document converter service
+docConverter:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: crank-doc-converter
+    tag: latest
+    pullPolicy: IfNotPresent
+    
+  service:
+    type: ClusterIP
+    port: 8100
+    targetPort: 8100
+    
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+      
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# Email classifier service  
+emailClassifier:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: crank-email-classifier
+    tag: latest
+    pullPolicy: IfNotPresent
+    
+  service:
+    type: ClusterIP
+    port: 8200
+    targetPort: 8200
+    
+  resources:
+    requests:
+      memory: "512Mi"  # ML models need more memory
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+      
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+# Email parser service
+emailParser:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: crank-email-parser
+    tag: latest
+    pullPolicy: IfNotPresent
+    
+  service:
+    type: ClusterIP
+    port: 8300
+    targetPort: 8300
+    
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+      
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# Streaming service
+streaming:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: crank-streaming
+    tag: latest
+    pullPolicy: IfNotPresent
+    
+  service:
+    type: ClusterIP
+    port: 8500
+    targetPort: 8500
+    
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+      
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+# Configuration
+config:
+  # Platform authentication token
+  platformAuthToken: "k8s-mesh-key-secure"
+  
+  # Environment settings
+  crankEnvironment: "production"
+  logLevel: "INFO"
+  
+  # Service discovery URLs (will be set by templates)
+  serviceDiscovery:
+    docConverter: ""
+    emailClassifier: ""
+    emailParser: ""
+    streaming: ""
+
+# Security configuration
+security:
+  # Pod security context
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 2000
+    
+  # Container security context
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    capabilities:
+      drop:
+      - ALL
+
+# RBAC configuration
+rbac:
+  enabled: true
+  
+serviceAccount:
+  enabled: true
+  create: true
+  name: ""
+  annotations: {}
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    
+# Storage configuration
+persistence:
+  enabled: false
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+# Network policies
+networkPolicy:
+  enabled: false
+  
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

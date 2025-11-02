@@ -1,0 +1,24 @@
+{{/* Use the microservice template for all services */}}
+
+{{/* Platform Service */}}
+{{ include "crank-platform.microservice" (dict "service" .Values.platform "global" .) }}
+
+{{/* Gateway Service */}}
+---
+{{ include "crank-platform.microservice" (dict "service" .Values.gateway "global" .) }}
+
+{{/* Document Converter Service */}}
+---
+{{ include "crank-platform.microservice" (dict "service" .Values.docConverter "global" .) }}
+
+{{/* Email Classifier Service */}}
+---
+{{ include "crank-platform.microservice" (dict "service" .Values.emailClassifier "global" .) }}
+
+{{/* Email Parser Service */}}
+---
+{{ include "crank-platform.microservice" (dict "service" .Values.emailParser "global" .) }}
+
+{{/* Streaming Service */}}
+---
+{{ include "crank-platform.microservice" (dict "service" .Values.streaming "global" .) }}

@@ -1,0 +1,27 @@
+apiVersion: v2
+name: crank-platform
+description: A Helm chart for Crank Platform microservices architecture
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - microservices
+  - document-processing
+  - email-processing
+  - ai-classification
+
+home: https://github.com/crankbird/crank-platform
+sources:
+  - https://github.com/crankbird/crank-platform
+  - https://github.com/crankbird/crank-infrastructure
+
+maintainers:
+  - name: CrankBird Team
+    email: platform@crankbird.com
+
+dependencies: []
+
+annotations:
+  category: Application
+  licenses: MIT
