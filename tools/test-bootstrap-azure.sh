@@ -5,10 +5,10 @@ echo "🧪 Testing Bootstrap on Azure VM"
 echo "================================"
 
 # Configuration
-RESOURCE_GROUP="crank-test-rg"
-VM_NAME="crank-bootstrap-test"
+RESOURCE_GROUP="bootstrap-test-rg"
+VM_NAME="bootstrap-test-vm"
 LOCATION="eastus"
-ADMIN_USERNAME="azureuser"
+ADMIN_USERNAME="testuser"
 
 # Check if VM exists and is running
 echo "🔍 Checking VM status..."
@@ -28,6 +28,10 @@ fi
 # Get VM IP
 VM_IP=$(az vm show --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" --show-details --query "publicIps" --output tsv)
 echo "🌐 VM IP: $VM_IP"
+
+# Wait a moment for VM to be fully ready
+echo "⏳ Waiting for VM to be ready for SSH..."
+sleep 10
 
 # Create bootstrap test script
 cat > /tmp/bootstrap-test.sh << 'EOF'
