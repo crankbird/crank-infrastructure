@@ -12,6 +12,7 @@ echo "🚀 Setting up container-first development environment..."
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 log_info() {
@@ -26,6 +27,22 @@ log_warning() {
     echo -e "${YELLOW}⚠️  $1${NC}"
 }
 
+log_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Function to handle errors gracefully
+handle_error() {
+    local exit_code=$?
+    local line_number=$1
+    log_error "Error on line $line_number. Exit code: $exit_code"
+    log_warning "Continuing with next installation step..."
+    return 0  # Don't exit, continue with other installations
+}
+
+# Set error trap for better error handling
+trap 'handle_error $LINENO' ERR
+
 # Install essential Python tools
 install_python_tools() {
     log_info "Installing Python development tools..."
@@ -34,18 +51,36 @@ install_python_tools() {
     if ! command -v uv >/dev/null 2>&1; then
         log_info "Installing uv..."
         curl -LsSf https://astral.sh/uv/install.sh | sh
-        export PATH="$HOME/.cargo/bin:$PATH"
+        export PATH="$HOME/.local/bin:$PATH"
+        source "$HOME/.local/bin/env" 2>/dev/null || true
         log_success "uv installed"
     else
         log_success "uv already installed: $(uv --version)"
     fi
     
-    # Install pipx for global Python tools
+    # Ensure pip is available for pipx installation
+    if ! python3 -m pip --version >/dev/null 2>&1; then
+        log_info "Installing pip..."
+        sudo apt-get update
+        sudo apt-get install -y python3-pip python3-venv
+        log_success "pip installed"
+    fi
+    
+    # Install pipx for global Python tools (fallback to uv if pip fails)
     if ! command -v pipx >/dev/null 2>&1; then
         log_info "Installing pipx..."
-        python3 -m pip install --user pipx
-        python3 -m pipx ensurepath
-        log_success "pipx installed"
+        if python3 -m pip install --user pipx 2>/dev/null; then
+            python3 -m pipx ensurepath
+            log_success "pipx installed via pip"
+        else
+            log_info "pip failed, installing pipx via uv..."
+            if command -v uv >/dev/null 2>&1; then
+                uv tool install pipx
+                log_success "pipx installed via uv"
+            else
+                log_warning "Could not install pipx, continuing without it"
+            fi
+        fi
     else
         log_success "pipx already installed"
     fi
@@ -104,19 +139,70 @@ main() {
     log_info "Starting container-first development environment setup..."
     echo
     
-    install_dev_tools
-    install_python_tools  
-    install_nodejs
+    # Run installations with individual error handling
+    set +e  # Disable exit on error for individual steps
+    
+    install_dev_tools || log_warning "Some development tools may not have installed correctly"
+    install_python_tools || log_warning "Some Python tools may not have installed correctly"
+    install_nodejs || log_warning "Node.js installation may have issues"
     
     # Call container setup
     if [[ -f "$SCRIPT_DIR/install-containers.sh" ]]; then
-        bash "$SCRIPT_DIR/install-containers.sh"
+        bash "$SCRIPT_DIR/install-containers.sh" || log_warning "Container setup had issues"
     else
         log_warning "Container setup script not found - Docker setup may be incomplete"
     fi
     
+    set -e  # Re-enable exit on error
+    
     echo
+    validate_installation
     log_success "Development environment setup complete!"
+    echo
+}
+
+# Validate installation
+validate_installation() {
+    log_info "Validating installation..."
+    
+    local tools_status=()
+    
+    # Check essential tools
+    if command -v uv >/dev/null 2>&1; then
+        tools_status+=("✅ uv: $(uv --version)")
+    else
+        tools_status+=("❌ uv: not found")
+    fi
+    
+    if command -v node >/dev/null 2>&1; then
+        tools_status+=("✅ Node.js: $(node --version)")
+    else
+        tools_status+=("❌ Node.js: not found")
+    fi
+    
+    if command -v gh >/dev/null 2>&1; then
+        tools_status+=("✅ GitHub CLI: installed")
+    else
+        tools_status+=("❌ GitHub CLI: not found")
+    fi
+    
+    if command -v docker >/dev/null 2>&1; then
+        tools_status+=("✅ Docker: $(docker --version 2>/dev/null || echo 'installed but not accessible')")
+    else
+        tools_status+=("❌ Docker: not found")
+    fi
+    
+    if command -v pipx >/dev/null 2>&1; then
+        tools_status+=("✅ pipx: installed")
+    else
+        tools_status+=("⚠️  pipx: not found (optional)")
+    fi
+    
+    echo
+    log_info "Installation Summary:"
+    for status in "${tools_status[@]}"; do
+        echo "  $status"
+    done
     echo
     echo "🐳 Container-First AI/ML:"
     echo "   docker run --gpus all -it pytorch/pytorch:latest"
