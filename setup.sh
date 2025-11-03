@@ -23,6 +23,8 @@ echo "🖥️ Detected platform: $PLATFORM"
 # Parse command line arguments
 ENVIRONMENT_TYPE="ai-ml"  # default
 DEPLOYMENT_TARGET="local"  # default
+PERSONAL_REPO=""
+PERSONAL_COMMIT=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -34,19 +36,29 @@ while [[ $# -gt 0 ]]; do
             DEPLOYMENT_TARGET="$2"
             shift 2
             ;;
+        --personal-repo)
+            PERSONAL_REPO="$2"
+            shift 2
+            ;;
+        --commit)
+            PERSONAL_COMMIT="$2"
+            shift 2
+            ;;
         --help)
             echo "Usage: $0 [OPTIONS]"
             echo ""
             echo "Options:"
-            echo "  --environment TYPE    Environment type: ai-ml, web-dev, cross-platform (default: ai-ml)"
-            echo "  --target TARGET       Deployment target: local, azure, aws (default: local)"
-            echo "  --help               Show this help message"
+            echo "  --environment TYPE     Environment type: ai-ml, web-dev, cross-platform (default: ai-ml)"
+            echo "  --target TARGET        Deployment target: local, azure, aws (default: local)"
+            echo "  --personal-repo URL    Personal repository URL (e.g., https://github.com/user/dotfiles)"
+            echo "  --commit HASH          Specific commit/tag/branch for personal repo (optional)"
+            echo "  --help                Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0                                    # Local AI/ML development environment"
-            echo "  $0 --environment web-dev              # Local web development environment"
-            echo "  $0 --target azure                     # Azure cloud deployment"
-            echo "  $0 --environment ai-ml --target azure # AI/ML environment on Azure"
+            echo "  $0                                           # Basic setup"
+            echo "  $0 --personal-repo https://github.com/user/dotfiles"
+            echo "  $0 --personal-repo https://github.com/user/dotfiles --commit v1.2.3"
+            echo "  $0 --environment web-dev --target azure     # Web dev environment on Azure"
             exit 0
             ;;
         *)
@@ -59,6 +71,12 @@ done
 
 echo "🎯 Environment type: $ENVIRONMENT_TYPE"
 echo "🌐 Deployment target: $DEPLOYMENT_TARGET"
+if [[ -n "$PERSONAL_REPO" ]]; then
+    echo "👤 Personal repository: $PERSONAL_REPO"
+    if [[ -n "$PERSONAL_COMMIT" ]]; then
+        echo "📌 Personal repo commit: $PERSONAL_COMMIT"
+    fi
+fi
 echo ""
 
 # Validate environment type
@@ -78,11 +96,13 @@ if [[ $PLATFORM == "linux" ]]; then
     fi
     
     # Run the comprehensive environment setup
-    if [[ -f "development-environments/$ENVIRONMENT_TYPE/setup_hybrid_environment.sh" ]]; then
-        bash "development-environments/$ENVIRONMENT_TYPE/setup_hybrid_environment.sh"
-    else
+    echo "🛠️ Installing development essentials (container-first approach)..."
+    bash development-environments/install-dev-essentials.sh
+    
+    # Install Docker/containers if not already available
+    if ! command -v docker &> /dev/null; then
+        echo "🐳 Installing Docker and container tools..."
         bash development-environments/install-containers.sh
-        bash development-environments/install-aiml.sh
     fi
     
 elif [[ $PLATFORM == "macos" ]]; then
@@ -93,6 +113,54 @@ elif [[ $PLATFORM == "windows" ]]; then
     echo "🪟 Windows setup"
     echo "Please run setup from WSL2 or use Azure deployment"
     exit 1
+fi
+
+# Step 1.5: Personal repository integration
+if [[ -n "$PERSONAL_REPO" ]]; then
+    echo ""
+    echo "👤 Step 1.5: Setting up personal configuration repository..."
+    
+    PERSONAL_DIR="$HOME/.personal-config"
+    
+    if [[ -d "$PERSONAL_DIR" ]]; then
+        echo "🔄 Updating existing personal configuration..."
+        cd "$PERSONAL_DIR"
+        git fetch origin
+        if [[ -n "$PERSONAL_COMMIT" ]]; then
+            echo "📌 Checking out specific commit: $PERSONAL_COMMIT"
+            git checkout "$PERSONAL_COMMIT"
+        else
+            git pull origin main || git pull origin master
+        fi
+    else
+        echo "📥 Cloning personal configuration repository..."
+        git clone "$PERSONAL_REPO" "$PERSONAL_DIR"
+        cd "$PERSONAL_DIR"
+        if [[ -n "$PERSONAL_COMMIT" ]]; then
+            echo "📌 Checking out specific commit: $PERSONAL_COMMIT"
+            git checkout "$PERSONAL_COMMIT"
+        fi
+    fi
+    
+    # Apply personal configurations
+    if [[ -f "setup.sh" ]]; then
+        echo "🔧 Applying personal configurations..."
+        bash setup.sh
+    elif [[ -f "install.sh" ]]; then
+        echo "🔧 Applying personal configurations..."
+        bash install.sh
+    elif [[ -f "bootstrap.sh" ]]; then
+        echo "🔧 Applying personal configurations..."
+        bash bootstrap.sh
+    else
+        echo "⚠️ No setup script found in personal repository"
+        echo "📁 Personal configs cloned to: $PERSONAL_DIR"
+        echo "💡 You may need to manually apply configurations"
+    fi
+    
+    # Return to infrastructure directory
+    cd - > /dev/null
+    echo "✅ Personal configuration setup complete"
 fi
 
 # Step 2: Set up deployment target
@@ -139,5 +207,8 @@ echo "3. Start platform services: docker-compose up"
 echo ""
 echo "📚 Documentation:"
 echo "- Infrastructure guide: ./README.md"
+echo "- Bootstrap guide: ./docs/requirements.md"
 echo "- Azure deployment: ./cloud/azure/deployment-guide.md"
-echo "- Environment setup: ./development-environments/$ENVIRONMENT_TYPE/"
+if [[ -n "$PERSONAL_REPO" ]]; then
+    echo "- Personal configs: $HOME/.personal-config"
+fi

@@ -56,29 +56,28 @@ crank-infrastructure/
 
 ## 🚀 Quick Start
 
-### 1. Set Up Development Environment
+### Bootstrap Complete Development Environment
+
 ```bash
-# Clone this repository
+# Clone and run infrastructure setup
 git clone https://github.com/crankbird/crank-infrastructure
 cd crank-infrastructure
-
-# Run environment setup for your platform
-./development-environments/ai-ml/setup.sh
+./setup.sh
 ```
 
-### 2. Provision Cloud Infrastructure
+### Bootstrap with Personal Configuration
 ```bash
-# Azure setup (requires Azure CLI)
-./cloud/azure/provision-dev-environment.sh
-
-# Includes VM creation, networking, and base software
+# Include your personal dotfiles and configurations
+./setup.sh --personal-repo https://github.com/yourusername/dotfiles
 ```
 
-### 3. Validate Environment
+### Validate Environment
 ```bash
 # Check if environment is ready for Crank platform
 ./tools/validation/check-platform-requirements.sh
 ```
+
+📖 **Complete Guide**: See [Bootstrap Guide](docs/bootstrap-guide.md) for detailed setup options and troubleshooting.
 
 ## 🎯 Integration with Crank Platform
 
